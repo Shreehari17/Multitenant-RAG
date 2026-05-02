@@ -4,18 +4,18 @@ from generation.generator import generate_answer
 if __name__ == "__main__":
     
     test_cases = [
-        {
-            "tenant_id": "org_a",
-            "query": "What is artificial intelligence?"
-        },
-        {
-            "tenant_id": "org_a", 
-            "query": "What is the liability cap in the contract?"
-        },
-        {
-            "tenant_id": "org_a",
-            "query": "What is the weather like today?"
-        }
+    {
+        "tenant_id": "org_a",
+        "query": "What is A star search algorithm?"
+    },
+    {
+        "tenant_id": "org_a",
+        "query": "How does the priority queue work in A star?"
+    },
+    {
+        "tenant_id": "org_a",
+        "query": "What is the weather today?"
+    }
     ]
     
     for test in test_cases:

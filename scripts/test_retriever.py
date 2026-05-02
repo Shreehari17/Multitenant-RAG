@@ -3,10 +3,10 @@ from retrieval.retriever import retrieve_chunks
 if __name__ == "__main__":
     
     queries = [
-        "What is artificial intelligence?",
-        "How does machine learning work?",
-        "What is deep learning?",
-    ]
+    "What is A star search algorithm?",
+    "How does the priority queue work?",
+    "What is the heuristic function?",
+    ] 
     
     for query in queries:
         print(f"\n{'='*60}")
