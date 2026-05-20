@@ -1,4 +1,4 @@
-from core.db import get_connection
+from core.db import get_connection, release_connection
 
 def setup_database():
     conn = get_connection()
@@ -33,7 +33,7 @@ def setup_database():
     
     conn.commit()
     cursor.close()
-    conn.close()
+    release_connection(conn)
     print("\nDatabase setup complete.")
 
 if __name__ == "__main__":

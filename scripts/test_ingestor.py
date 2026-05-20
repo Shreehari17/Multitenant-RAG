@@ -1,5 +1,5 @@
 from ingestion.ingestor import ingest_document
-from core.db import get_connection
+from core.db import get_connection, release_connection
 
 sample_text = """
 Artificial intelligence is transforming industries across the world. 
@@ -40,4 +40,4 @@ if __name__ == "__main__":
     for row in rows:
         print(f"  id={row[0]} | doc={row[1]} | preview: {row[2]}...")
     cursor.close()
-    conn.close()
+    release_connection(conn)

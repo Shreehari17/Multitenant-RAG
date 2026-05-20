@@ -1,6 +1,6 @@
 from typing import List,Dict
 from ingestion.embedder import embed_query
-from core.db import get_connection
+from core.db import get_connection, release_connection
 
 def retrieve_chunks(tenant_id:str,query:str,top_k:int=5)->List[Dict]:
     """
@@ -34,7 +34,7 @@ def retrieve_chunks(tenant_id:str,query:str,top_k:int=5)->List[Dict]:
     """, (vector_str, tenant_id, vector_str, top_k))
     rows=cursor.fetchall()
     cursor.close()
-    conn.close()
+    release_connection(conn)
     results=[]
     for row in rows:
         results.append({

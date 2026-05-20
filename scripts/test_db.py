@@ -1,4 +1,4 @@
-from core.db import get_connection
+from core.db import get_connection, release_connection
 
 def test_connection():
     try:

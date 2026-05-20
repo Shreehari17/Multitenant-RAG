@@ -1,4 +1,4 @@
-from core.db import get_connection
+from core.db import get_connection, release_connection
 from ingestion.chunker import chunk_text
 from ingestion.embedder import embed_chunks
 
@@ -26,6 +26,6 @@ def ingest_document(tenant_id:int, doc_id: int,raw_text:str)->int:
 
     conn.commit()
     cursor.close()
-    conn.close()
+    release_connection(conn)
     print(f"[ingestor] Stored {len(chunks)} chunks in database")
     return len(chunks)
