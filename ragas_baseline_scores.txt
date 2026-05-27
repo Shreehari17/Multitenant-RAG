@@ -1,0 +1,12 @@
+RAG EVALUATION BASELINE SCORES
+=======================================================
+Faithfulness:      0.5833
+Answer Relevancy:  0.77
+Context Precision: 0.7333
+Context Recall:    0.56
+=======================================================
+Model: llama-3.1-8b-instant
+Embedding: all-mpnet-base-v2
+Chunker: RecursiveCharacterTextSplitter 500/50
+Questions evaluated: 10
+Evaluator: custom LLM-as-judge using Groq
