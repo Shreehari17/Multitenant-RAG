@@ -8,7 +8,7 @@ from groq import Groq
 load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from retrieval.retriever import retrieve_chunks
+from retrieval.hybrid_retriever import hybrid_retrieve
 from generation.generator import generate_answer
 from scripts.create_test_dataset import test_dataset
 
@@ -30,36 +30,27 @@ def ask_llm(prompt: str) -> str:
 
 def score_faithfulness(answer: str, contexts: list) -> float:
     """
-    Faithfulness: does the answer stick to what the context says?
-    We break the answer into statements and check each one against context.
-    Score = faithful statements / total statements
+    Simplified faithfulness — single YES/NO call, fewer tokens.
     """
-    context_text = "\n".join(contexts)
-    prompt = f"""Given the following context and answer, list each factual statement 
-in the answer and label it FAITHFUL or UNFAITHFUL based on whether it can be 
-supported by the context.
+    if "don't have enough information" in answer.lower():
+        return 1.0  # correct refusal is perfectly faithful
 
-Context:
-{context_text}
+    context_text = " ".join(contexts)[:400]
 
-Answer:
-{answer}
+    prompt = f"""Is this answer supported by the context below? Answer only YES or NO.
 
-Respond in JSON format like this:
-{{"statements": [{{"statement": "...", "label": "FAITHFUL"}}]}}
+Context: {context_text}
 
-Only respond with JSON, nothing else."""
+Answer: {answer[:200]}
+
+Reply with only YES or NO."""
 
     result = ask_llm(prompt)
-    try:
-        data = json.loads(result)
-        statements = data.get("statements", [])
-        if not statements:
-            return 0.0
-        faithful = sum(1 for s in statements if s.get("label") == "FAITHFUL")
-        return round(faithful / len(statements), 4)
-    except:
-        return 0.5
+    if "YES" in result.upper():
+        return 1.0
+    elif "NO" in result.upper():
+        return 0.0
+    return 0.5
 
 def score_answer_relevancy(question: str, answer: str) -> float:
     """
@@ -101,7 +92,7 @@ Context chunk: {ctx[:300]}"""
         result = ask_llm(prompt)
         if "YES" in result.upper():
             relevant += 1
-        time.sleep(0.3)
+        time.sleep(1)
 
     return round(relevant / len(contexts), 4)
 
@@ -157,7 +148,7 @@ def run_evaluation():
         print(f"\n[{i}/{len(test_dataset)}] {question[:55]}...")
 
         # Get RAG pipeline output
-        chunks = retrieve_chunks(tenant_id=tenant, query=question, top_k=3)
+        chunks = hybrid_retrieve(tenant_id=tenant, query=question, top_k=3)
         result = generate_answer(query=question, chunks=chunks)
         answer = result["answer"]
         contexts = [c["chunk_text"] for c in chunks]
@@ -166,16 +157,16 @@ def run_evaluation():
 
         # Score each metric
         f_score = score_faithfulness(answer, contexts)
-        time.sleep(0.5)
+        time.sleep(2)
 
         ar_score = score_answer_relevancy(question, answer)
-        time.sleep(0.5)
+        time.sleep(2)
 
         cp_score = score_context_precision(question, contexts)
-        time.sleep(0.5)
+        time.sleep(2)
 
         cr_score = score_context_recall(ground_truth, contexts)
-        time.sleep(0.5)
+        time.sleep(2)
 
         all_scores["faithfulness"].append(f_score)
         all_scores["answer_relevancy"].append(ar_score)

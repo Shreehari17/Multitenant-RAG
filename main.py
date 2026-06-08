@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
 from ingestion.pdf_extractor import extract_text_from_pdf
 from ingestion.ingestor import ingest_document
-from retrieval.retriever import retrieve_chunks
+from retrieval.hybrid_retriever import hybrid_retrieve
 from generation.generator import generate_answer
 
 app = FastAPI(
@@ -146,10 +146,10 @@ async def ingest_pdf(
 @app.post("/query")
 def query(request: QueryRequest):
     try:
-        chunks = retrieve_chunks(
-            tenant_id=request.tenant_id,
-            query=request.query,
-            top_k=request.top_k
+        chunks = hybrid_retrieve(
+        tenant_id=request.tenant_id,
+        query=request.query,
+        top_k=request.top_k
         )
 
         result = generate_answer(
