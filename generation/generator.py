@@ -7,18 +7,20 @@ load_dotenv()
 client=Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
-def build_prompt(query:str,chunks:List[Dict])->str:
-    """
-    Build a grounded prompt from the query and retrieved chunks.
-    """
-    context=""
-    for i,chunk in enumerate(chunks,1):
-        context += f"\n--- Chunk {i} (from {chunk['doc_id']}) ---\n"
+def build_prompt(query: str, chunks: List[Dict]) -> str:
+    context = ""
+    for i, chunk in enumerate(chunks, 1):
+        context += f"\n--- Source {i} (from {chunk['doc_id']}) ---\n"
         context += chunk['chunk_text']
         context += "\n"
-    prompt = f"""You are a helpful assistant. Answer the question using ONLY the context provided below.
-If the answer is not found in the context, say "I don't have enough information to answer this."
-Do not make up information. Be concise and direct.
+
+    prompt = f"""You are a helpful assistant that answers questions based on provided context.
+
+INSTRUCTIONS:
+- Answer using information from the context below
+- Be specific and detailed when the context contains the information
+- If the context does not contain enough information to answer, say exactly: "I don't have enough information to answer this."
+- Do not add information beyond what is in the context
 
 CONTEXT:
 {context}

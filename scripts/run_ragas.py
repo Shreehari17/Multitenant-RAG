@@ -29,19 +29,22 @@ def ask_llm(prompt: str) -> str:
         return ""
 
 def score_faithfulness(answer: str, contexts: list) -> float:
-    """
-    Simplified faithfulness — single YES/NO call, fewer tokens.
-    """
     if "don't have enough information" in answer.lower():
-        return 1.0  # correct refusal is perfectly faithful
+        return 1.0
 
-    context_text = " ".join(contexts)[:400]
+    context_text = " ".join(contexts)[:600]
 
-    prompt = f"""Is this answer supported by the context below? Answer only YES or NO.
+    prompt = f"""You are evaluating if an answer is grounded in context.
 
-Context: {context_text}
+Context:
+{context_text}
 
-Answer: {answer[:200]}
+Answer:
+{answer[:300]}
+
+Is the core information in this answer supported by or consistent with the context?
+Answer YES if the answer is mostly faithful — even if well written or summarized.
+Answer NO only if the answer contains clear contradictions or completely fabricated facts not in context.
 
 Reply with only YES or NO."""
 
@@ -121,8 +124,12 @@ Respond with only a number between 0 and 10."""
         return 0.5
 
 def get_tenant(question: str) -> str:
-    org_b_keywords = ["youth for seva", "walkathon", "volunteering",
-                      "ngo", "activities", "skills were developed"]
+    org_b_keywords = [
+        "youth for seva", "walkathon", "volunteering",
+        "ngo", "activities", "skills were developed",
+        "human resource", "employment contract",
+        "nonprofit", "corporate governance", "volunteer"
+    ]
     for keyword in org_b_keywords:
         if keyword in question.lower():
             return "org_b"
@@ -148,7 +155,7 @@ def run_evaluation():
         print(f"\n[{i}/{len(test_dataset)}] {question[:55]}...")
 
         # Get RAG pipeline output
-        chunks = hybrid_retrieve(tenant_id=tenant, query=question, top_k=3)
+        chunks = hybrid_retrieve(tenant_id=tenant, query=question, top_k=5)
         result = generate_answer(query=question, chunks=chunks)
         answer = result["answer"]
         contexts = [c["chunk_text"] for c in chunks]

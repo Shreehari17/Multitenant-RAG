@@ -8,6 +8,7 @@ from ingestion.pdf_extractor import extract_text_from_pdf
 from ingestion.ingestor import ingest_document
 from retrieval.hybrid_retriever import hybrid_retrieve
 from generation.generator import generate_answer
+from core.cache import get_cached_answer, store_cached_answer
 
 app = FastAPI(
     title="Multitenant RAG API",
@@ -146,10 +147,16 @@ async def ingest_pdf(
 @app.post("/query")
 def query(request: QueryRequest):
     try:
+        # Check semantic cache first
+        cached = get_cached_answer(request.query)
+        if cached:
+            return JSONResponse(status_code=200, content=cached)
+
+        # Cache miss — run full pipeline
         chunks = hybrid_retrieve(
-        tenant_id=request.tenant_id,
-        query=request.query,
-        top_k=request.top_k
+            tenant_id=request.tenant_id,
+            query=request.query,
+            top_k=request.top_k
         )
 
         result = generate_answer(
@@ -157,20 +164,20 @@ def query(request: QueryRequest):
             chunks=chunks
         )
 
-        return JSONResponse(
-            status_code=200,
-            content={
-                "query": result["query"],
-                "answer": result["answer"],
-                "sources": result["sources"],
-                "chunks_used": result["chunks_used"]
-            }
-        )
+        response = {
+            "query": result["query"],
+            "answer": result["answer"],
+            "sources": result["sources"],
+            "chunks_used": result["chunks_used"],
+            "cache_hit": False
+        }
+
+        # Store in cache for future similar queries
+        store_cached_answer(request.query, result)
+
+        return JSONResponse(status_code=200, content=response)
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Query failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")

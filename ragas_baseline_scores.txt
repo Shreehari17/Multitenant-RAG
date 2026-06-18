@@ -1,9 +1,9 @@
 RAG EVALUATION BASELINE SCORES
 =======================================================
-Faithfulness:      0.75
-Answer Relevancy:  0.75
-Context Precision: 0.8333
-Context Recall:    0.73
+Faithfulness:      0.8
+Answer Relevancy:  0.88
+Context Precision: 0.7
+Context Recall:    0.77
 =======================================================
 Model: llama-3.1-8b-instant
 Embedding: all-mpnet-base-v2

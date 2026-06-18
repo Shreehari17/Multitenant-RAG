@@ -1,6 +1,7 @@
 from typing import List, Dict
 from retrieval.retriever import retrieve_chunks
 from retrieval.bm25_retriever import bm25_search
+from retrieval.reranker import rerank
 
 def reciprocal_rank_fusion(
     semantic_results: List[Dict],
@@ -83,5 +84,7 @@ def hybrid_retrieve(tenant_id: str, query: str, top_k: int = 5) -> List[Dict]:
     # Merge with RRF
     merged = reciprocal_rank_fusion(semantic_results, bm25_results)
 
-    print(f"[hybrid_retriever] After RRF fusion: returning top {top_k}")
-    return merged[:top_k]
+    print(f"[hybrid_retriever] After RRF fusion:{len(merged)} unique chunks")
+    print(f"[hybrid_retriever] Running cross-encoder reranker..")
+    reranked=rerank(query=query,chunks=merged,top_k=top_k)
+    return reranked
