@@ -8,8 +8,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir \
     torch==2.0.0 --index-url https://download.pytorch.org/whl/cpu
 
-# Install all other dependencies without letting them reinstall torch
-RUN pip install --no-cache-dir --no-deps -r requirements.txt
+# Install all dependencies (torch won't reinstall, others will)
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
